@@ -11,7 +11,7 @@ of some Curry features.
   annotations to mark deterministic operations as described in
   <http://dx.doi.org/10.1007/978-3-319-51676-9_1>
 
-* 'Language.Curry.CheckOperations`: check the correct use of
+* `Language.Curry.CheckOperations`: check the correct use of
   [set functions](http://doi.acm.org/10.1145/1599410.1599420)
   and whether some auxiliary operations are not used, mainly
   the non-strict equality operation `Prelude.=:<=` which used

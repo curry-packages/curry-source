@@ -9,7 +9,7 @@
 --- package directory `examples` for some examples.
 ---
 --- @author Michael Hanus
---- @version February 2023
+--- @version January 2024
 ------------------------------------------------------------------------------
 
 module Language.Curry.CheckOperations
@@ -24,7 +24,7 @@ import AbstractCurry.Match
 import FlatCurry.Types
 import FlatCurry.Match
 
-import Control.SetFunctions
+import Control.Search.SetFunctions
 
 ------------------------------------------------------------------------------
 --- Returns messages about unintended uses of set functions in a
@@ -48,7 +48,7 @@ checkSetUse (Prog _ _ _ fdecls _) = do
 setUse :: [FuncDecl] -> (QName, String, String)
 setUse (_ ++
         [funWithinExp qf _ _
-                      (Comb ct ("Control.SetFunctions", "set" ++ n) args)]
+           (Comb ct ("Control.Search.SetFunctions", "set" ++ n) args)]
         ++ _) =
   invalidSetFunCall qf ct n args
 

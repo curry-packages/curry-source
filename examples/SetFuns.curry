@@ -3,7 +3,7 @@
 -- are detected by CurryCheck (based on the libraries of this package).
 ---------------------------------------------------------------------------
 
-import Control.SetFunctions
+import Control.Search.SetFunctions
 
 -- Detection of unintended uses of set functions.
 -- Note that `setN` must be applied to an `N`-ary top-level operation

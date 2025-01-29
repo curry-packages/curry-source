@@ -1,6 +1,6 @@
 {
     "name": "curry-source",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "Libraries to support the checking of Curry source code",
     "category": [ "Analysis" ],
@@ -9,10 +9,18 @@
     "dependencies": {
         "base"          : ">= 3.2.0, < 4.0.0",
         "abstract-curry": ">= 3.0.0, < 5.0.0",
-        "flatcurry"     : ">= 3.0.0, < 5.0.0"
+        "flatcurry"     : ">= 3.0.0, < 5.0.0",
+        "exact-print"   : ">= 2.0.0, < 3.0.0",
+        "curry-ast"     : ">= 3.1.0, < 4.0.0",
+        "string-trie"   : ">= 0.0.2, < 1.0.0",
+        "profiling"     : ">= 3.0.0, < 4.0.0"
     },
     "source": {
         "git": "https://github.com/curry-packages/curry-source.git",
         "tag": "$version"
+    },
+    "testsuite": {
+      "src-dir": "test",
+      "modules": [ "TestSourceCodeClassifier" ]
     }
 }

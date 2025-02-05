@@ -9,8 +9,8 @@
 
 module Language.Curry.SourceCodeClassifier 
   ( getDeclarationsInModule, getOperationsInModule 
-  , getTypesInModule, getClassesInModule ) 
- where
+  , getTypesInModule, getClassesInModule
+  ) where
 
 import Curry.Comment  ( readComments )
 import Curry.Files    ( readFullAST, readShortAST )
@@ -42,8 +42,7 @@ type Occurrence = (String, LineSpan, LineSpan)
 --- in a module with their associated comment and code spans.
 getDeclarationsInModule :: String -> IO ([Occurrence], [Occurrence], [Occurrence])
 getDeclarationsInModule mn = do
-  comments <- (mergeCommentSpans . getCommentSpans) <$> readComments mn
-  mdl <- readFullAST mn
+  (mdl, comments) <- readModule mn
 
   let ops     = collectOperationsInModule mdl comments  
   let types   = collectTypesInModule      mdl comments 
@@ -89,7 +88,7 @@ type ClassDeclE = Entity String
 
 --- Given some module and comment line spans, this function collects all
 --- operations in the module with their associated comment and code spans.
-collectOperationsInModule :: Module () -> [LineSpan] -> [Occurrence]
+collectOperationsInModule :: Module a -> [LineSpan] -> [Occurrence]
 collectOperationsInModule mdl comments = 
   let sigs = collectSignatures mdl
       ops  = collectOperations mdl
@@ -100,12 +99,12 @@ collectOperationsInModule mdl comments =
   createOccs :: LineSpan -> SignatureE -> [Occurrence]
   createOccs cls (is, sigSpan) = [(i, cls, sigSpan) | i <- is]
 
-  collectSignatures :: Module () -> [SignatureE]
+  collectSignatures :: Module a -> [SignatureE]
   collectSignatures (Module _ _ _ _ _ _ ops) 
     = sortBy lineNumber $ catMaybes $ map collectSignature ops
 
   -- Collects the identifier and span of all operation signatures.
-  collectSignature :: Decl () -> Maybe SignatureE
+  collectSignature :: Decl a -> Maybe SignatureE
   collectSignature decl = case decl of
     (TypeSig si is _) -> do
       sp <- getLineSpan si
@@ -114,10 +113,10 @@ collectOperationsInModule mdl comments =
 
   -- Collects the span lines of all operations (rules) and stores them 
   -- in a trie.
-  collectOperations :: Module () -> T.Trie LineSpan
+  collectOperations :: Module a -> T.Trie LineSpan
   collectOperations (Module _ _ _ _ _ _ ops) = foldr collect T.empty ops
    where
-    collect :: Decl () -> Trie LineSpan -> Trie LineSpan
+    collect :: Decl a -> Trie LineSpan -> Trie LineSpan
     collect decl trie = case decl of
       (FunctionDecl si _ i _) -> case getLineSpan si of 
         Nothing -> trie 
@@ -140,16 +139,16 @@ collectOperationsInModule mdl comments =
 --- Given some module and comment line spans, this function collects all
 --- type declarations in the module with their associated comment and 
 --- code spans.
-collectTypesInModule :: Module () -> [LineSpan] -> [Occurrence]
+collectTypesInModule :: Module a -> [LineSpan] -> [Occurrence]
 collectTypesInModule mdl comments = 
   let types = collectTypes mdl
   in addComments createOcc comments types
  where
-  collectTypes :: Module () -> [TypeDeclE]
+  collectTypes :: Module a -> [TypeDeclE]
   collectTypes (Module _ _ _ _ _ _ decls) 
     = sortBy lineNumber $ catMaybes $ map collectType decls
 
-  collectType :: Decl () -> Maybe (TypeDeclE)
+  collectType :: Decl a -> Maybe (TypeDeclE)
   collectType decl = case decl of
     (DataDecl si i _ _ _) -> do
       sp <- getLineSpan si
@@ -164,16 +163,16 @@ collectTypesInModule mdl comments =
 
 --- Given some module and comment line spans, this function collects all
 --- classes in the module with their associated comment and code spans.
-collectClassesInModule :: Module () -> [LineSpan] -> [Occurrence]
+collectClassesInModule :: Module a -> [LineSpan] -> [Occurrence]
 collectClassesInModule mdl comments = 
   let classes = collectClasses mdl
   in addComments createOcc comments classes
  where
-  collectClasses :: Module () -> [ClassDeclE]
+  collectClasses :: Module a -> [ClassDeclE]
   collectClasses (Module _ _ _ _ _ _ decls) 
     = sortBy lineNumber $ catMaybes $ map collectClass decls
 
-  collectClass :: Decl () -> Maybe (ClassDeclE)
+  collectClass :: Decl a -> Maybe (ClassDeclE)
   collectClass decl = case decl of
     (ClassDecl si _ _ i _ _ _) -> do
       sp <- getLineSpan si

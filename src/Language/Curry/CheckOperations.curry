@@ -9,7 +9,7 @@
 --- package directory `examples` for some examples.
 ---
 --- @author Michael Hanus
---- @version January 2024
+--- @version April 2025
 ------------------------------------------------------------------------------
 
 module Language.Curry.CheckOperations
@@ -125,8 +125,6 @@ blacklistUsage (_ ++ [cfunWithExp qf (AC.CSymbol qop)] ++ _)
 
 isBlacklistedOperation :: AC.QName -> Bool
 isBlacklistedOperation (q,f) =
-  q == AC.preludeName &&
-  (take 5 f == "prim_" --no direct call to primitive ops
-   || f `elem` ["=:<=", "=:<<="])
+  q == AC.preludeName && f `elem` ["=:<=", "=:<<="]
 
 ------------------------------------------------------------------------------

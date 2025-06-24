@@ -12,6 +12,8 @@ import AbstractCurry.Types
 
 --- Returns (non-deterministically) some expression that contains
 --- the given expression as a subexpression.
+--- If they are used as functional patterns, they implement
+--- deep pattern matching.
 withExp :: CExpr -> CExpr
 withExp e = e -- the subexpression is the entire expression
 withExp e = CApply (withExp e) _

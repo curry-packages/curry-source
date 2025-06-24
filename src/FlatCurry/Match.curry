@@ -12,6 +12,8 @@ import FlatCurry.Types
 
 --- Returns (non-deterministically) some expression that contains
 --- the given expression as a subexpression.
+--- If they are used as functional patterns, they implement
+--- deep pattern matching.
 withExp :: Expr -> Expr
 withExp e = e -- the subexpression is the entire expression
 withExp e = Comb _ _ (_ ++ [withExp e] ++ _)

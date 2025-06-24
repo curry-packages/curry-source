@@ -1,16 +1,19 @@
 ------------------------------------------------------------------------------
 --- This module provides functions to extract span information of entities
---- in curry source programs. Namely, it provides functions to extract the
+--- defined in Curry source programs. These functions extract the
 --- span information of operations, types, and classes. The span information
---- consists of the comment span and the code span of the entity.
+--- consists of the comment span and the source code span of each entity.
 ---
---- @version January 2025
+--- @version June 2025
 ------------------------------------------------------------------------------
 
 module Language.Curry.SourceCodeClassifier
   ( getDeclarationsInModule, getOperationsInModule
   , getTypesInModule, getClassesInModule
   ) where
+
+import Data.Maybe ( catMaybes )
+import Data.List  ( sortBy )
 
 import Curry.Comment  ( readComments )
 import Curry.Files    ( readFullAST, readShortAST )
@@ -20,13 +23,10 @@ import Curry.SpanInfo ( SpanInfo(..) )
 import Curry.Span     ( Span(..) )
 import Curry.Position ( Position (..) )
 
-import Data.Maybe ( catMaybes )
-import Data.List  ( sortBy )
-
 import Data.Trie as T ( Trie, empty, insert, lookup )
 
---- A pair of start and end line numbers. The start line number is inclusive,
---- the end line number is exclusive.
+--- A line span is a pair of a start and an end line number.
+--- The start line number is inclusive, the end line number is exclusive.
 type LineSpan = (Int, Int)
 
 --- Denotes a missing span. This is used for occurrences of entites without
@@ -34,13 +34,13 @@ type LineSpan = (Int, Int)
 missing :: LineSpan
 missing = (0, 0)
 
---- An occurrence of some entity in the source code, consisting of
---- the entity's name, the comment span, and the code span.
+--- An occurrence of some entity in the source code consists of
+--- the entity's name, the comment span, and the source code span.
 type Occurrence = (String, LineSpan, LineSpan)
 
---- Extracts all operations, type declarations and class declarations
---- in a module with their associated comment and code spans.
-getDeclarationsInModule :: String -> IO ([Occurrence], [Occurrence], [Occurrence])
+--- Extracts all operations, type declarations, and class declarations
+--- in a module with their associated comment and source code spans.
+getDeclarationsInModule :: String -> IO ([Occurrence],[Occurrence],[Occurrence])
 getDeclarationsInModule mn = do
   (mdl, comments) <- readModule mn
 
@@ -50,17 +50,17 @@ getDeclarationsInModule mn = do
 
   return (ops, types, classes)
 
---- Extracts all operations in a module with their comment and code spans.
+--- Extracts all operations in a module with their comment and source code spans.
 getOperationsInModule :: String -> IO [Occurrence]
 getOperationsInModule mn =
   uncurry collectOperationsInModule <$> readModule mn
 
---- Extracts all types in a module with their comment and code spans.
+--- Extracts all types in a module with their comment and source code spans.
 getTypesInModule :: String -> IO [Occurrence]
 getTypesInModule mn =
   uncurry collectTypesInModule <$> readModule mn
 
---- Extracts all classes in a module with their comment and code spans.
+--- Extracts all classes in a module with their comment and source code spans.
 getClassesInModule :: String -> IO [Occurrence]
 getClassesInModule mn =
   uncurry collectClassesInModule <$> readModule mn
@@ -199,11 +199,12 @@ createOcc cls (i, sigSpan) = [(i, cls, sigSpan)]
 -- number of comments and signatures.
 --
 -- For `addComments f cs ss`,
---  - `f` is a function that creates occurrences from a comment span and some entity
---    that has a line span.
---  - `cs` is the list of comment spans.
---  - `ss` is the list of signature spans.
-addComments :: (LineSpan -> (a, LineSpan) -> [Occurrence]) -> [LineSpan] -> [(a, LineSpan)] -> [Occurrence]
+--  - `f` is a function that creates occurrences from a comment span and
+--    some entity that has a line span
+--  - `cs` is the list of comment spans
+--  - `ss` is the list of signature spans
+addComments :: (LineSpan -> (a, LineSpan) -> [Occurrence]) -> [LineSpan]
+            -> [(a, LineSpan)] -> [Occurrence]
 addComments f cs ss = case (cs, ss) of
   ([], _) -> concatMap (f missing) ss
   (_, []) -> []
